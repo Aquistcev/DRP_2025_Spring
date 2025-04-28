@@ -1,0 +1,243 @@
+\documentclass{beamer}
+
+% Theme selection (you can change to Madrid, Berlin, Warsaw, etc.)
+\usetheme{CambridgeUS}
+
+\usepackage{fontspec}        % 文本字体
+\usepackage{unicode-math}    % 数学字体
+
+% Presentation metadata
+\title{Fast Fourier Transform}
+\author{Wenyue Zhang}
+%\institute{Department of Mathematics, Your University}
+\date{\today}
+
+\begin{document}
+
+% Title slide
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% Table of contents (optional)
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+%------------------------------------------------
+\section{Fourier Analysis on $\mathbb Z(N)$}
+
+\begin{frame}{The Group $\mathbb Z(N)$}
+    Two integers $x$ and $y$ are congruent modulo $N$ if $x - y$ is divisible by $N$.
+
+    \pause
+
+    It can be easily seen that this defines an equivalence relation on $\mathbb Z$.
+
+    \pause
+
+    Define $R(x)$ the equivalence class of $x$, and define $$R(x) + R(y) = R(x + y).$$This turns the set of equivalence classes into an abelian group called the 
+    group of integers modulo $N$ denoted by $\mathbb Z(N)$ or $\mathbb Z / N \mathbb Z$.
+\end{frame}
+
+\begin{frame}{Root of Unity}
+    A complex number $z$ is an $N$th root of unity of $z^N = 1$. The set of $N$th roots of unity is
+    $$
+    \{1, \text{e}^{2 \pi \text{i}/N}, \text{e}^{2(2 \pi \text{i}/N)}, \cdots, \text{e}^{(n - 1)(2 \pi \text{i}/N)}\}
+    $$
+    It can be seen that the set forms a group under complex multiplication. Moreover, it is essentially the same as $\mathbb Z(N)$.
+
+    \pause
+
+    We will use $\mathbb Z(N)$ to denote either of these two groups.
+\end{frame}
+
+\begin{frame}{Fourier Coefficient}
+    Assume $f : [0, 2 \pi) \to \mathbb C$ is a $2 \pi$-periodic function. The Fourier coefficient of $f$ is defined by
+    $$
+    a_n = \frac{1}{2 \pi}\int_0^{2 \pi} f(x) \text{e}^{-\text{i} n x} \text{d}x.
+    $$
+    \pause
+    Under certain conditions, we have
+    $$
+    f(x) = \sum_{n = - \infty}^{\infty} a_n \text{e}^{\text{i}nx}
+    $$
+\end{frame}
+
+\begin{frame}{Fourier Coefficient}
+    Let $V$ be the set of all continuous functions on $[0, 2 \pi)$. It is clear that $V$ is a vector space under addition and scaler multiplication.
+    \pause
+    If we define the inner product $\langle f, g \rangle$ by
+    $$
+    \langle f, g \rangle = \frac{1}{2 \pi}\int_0^{2 \pi} f \overline g,
+    $$
+    then one can verify that $\{e_n\}$ form an orthonormal basis of $V$, where $e_n(x) = \text{e}^{\text{i}nx}$.
+\end{frame}
+
+\begin{frame}{Fourier Coefficient}
+    Now let consider all complex-valued functions on $\mathbb Z(N)$. Similarly denote this vector space by $V$. We define the inner product by
+    $$
+    \langle f, g \rangle = \sum_{n = 0}^{N - 1} f(n) \overline{g(n)}.
+    $$
+    \pause
+    If we define $e_l(k) = \text{e}^{2 \pi \text{i}lk}$ for $l = 0, 1, \cdots, N - 1$ and $k = 0, 1, \cdots, N - 1$, then it can be verified that 
+    $\{e_0, \cdots, e_{N - 1}\}$ is an orthogonal basis.
+\end{frame}
+
+\begin{frame}{Fourier Coefficient}
+    By results from linear algebra, we can write $f$ as
+    $$
+    f = \sum_{n = 0}^{N - 1} a_n e_n,
+    $$
+    where
+    $$
+    a_n = \frac{\langle f, e_n \rangle}{\langle e_n, e_n \rangle} = \frac{1}{N}\sum_{k = 0}^{N - 1} f(k) \text{e}^{- 2 \pi \text{i} kn / N}.
+    $$
+    \pause
+    In addition,
+    $$
+    f(k) = \sum_{n = 0}^{N - 1} a_n \text{e}^{2 \pi \text{i} nk/N}
+    $$
+\end{frame}
+
+%------------------------------------------------
+\section{Fast Fourier Transform}
+
+\begin{frame}{Discrete Fourier Transform}
+    The process to find $a_0, a_1, \cdots, a_{N - 1}$ is called the discrete Fourier transform.
+
+    \pause
+
+    We can use two loops to compute them, with a time complexity of $O(N^2)$.
+
+    \pause
+
+    We now present the fast Fourier transform, an algorithm that improves the bound $O(N^2)$ to $O(N \log N)$.
+\end{frame}
+
+% Formula example
+\begin{frame}{Fast Fourier Transform}
+    The algorithm is based on the technique of divide-and-conquer.
+
+    \pause
+
+    First we restrict ourselves to the case where $N = 2^n$. After that it is easy to extend the method to all integers by adding $0$ term.
+
+    \pause
+
+    Let $\#(M)$ denote the minimum number of operations needed to calculate all the Fourier coefficients. The key is contained in the following recursion step.
+\end{frame}
+
+\begin{frame}{A Lemma}
+    If we are given $\omega_{2M} = \text{e}^{-2 \pi \text{i} / (2M)}$, then
+    $$
+    \#(2M) \le 2\#(M) + 8M
+    $$
+    \pause
+    Proof: The calculation of $\omega_{2M}, \cdots, \omega_{2M}^{2M}$ requires no more than $2M$ operations. Note that in particular we get $\omega_M = \omega_{2M}^2$. 
+    The main idea is that for any given function $f$ on $\mathbb Z(M)$, we consider two functions $f_0$ and $f_1$ on $\mathbb Z(M)$ defined by
+    $$
+    f_0(r) = f(2r) \text{ and } f_1(r) = f(2r + 1).
+    $$
+\end{frame}
+
+\begin{frame}{A Lemma}
+    We assume that it is possible to calculate the Fourier coefficient of $F_0$ and $F_1$ in no more than $\#(M)$ operations each. If we denote the Fourier coefficients corresponding to 
+    the groups $\mathbb Z(2M)$ and $\mathbb Z(M)$ by $a_{k}^{2M}$ and $a_{k}^M$, then we have
+    $$
+    \begin{aligned}
+        a_k^{2M}(f) &= \frac{1}{2M} \sum_{r = 0}^{2M - 1} f(r) \omega_{2M}^{kr} \\
+        &= \frac{1}{2}\left(\frac{1}{M}\sum_{r = 0}^{M - 1}f_0(r) \omega_M^{kr} + \frac{1}{M}\sum_{r = 0}^{M - 1} f_1(r) \omega_M^{km} \omega_{2M}^k\right).
+    \end{aligned}
+    $$
+\end{frame}
+
+\begin{frame}{A Lemma}
+    Therefore
+    $$
+    a_k^{2M}(f) = \frac{1}{2} \left(a_k^M(f_0) + a_k^M(f_1) \omega_{2M}^k \right).
+    $$
+    As a result, knowing $a_k^M(f_0), a_k^M(f_1)$ and $\omega_{2M}^k$, we see that each $a_k^{2M}(f)$ can be computed using no more than three operations. So
+    $$
+    \#(2M) \le 2M + 2 \#(M) + 3 \times 2M = 2 \#(M) + 8M.
+    $$
+\end{frame}
+
+\begin{frame}{Fast Fourier Transform}
+    Then we can prove the bound by induction. The initial step for $n = 1$ is easy, since $N = 2$ and the two Fourier coefficients can be computed easily. Assume $\#(N) \le 4 \cdot 2^nn$, then by the lemma
+    $$
+    \#(2N) \le 2 \#(N) + 8N = 2 \cdot 4 \cdot 2^nn + 8 \cdot 2^n = 4\cdot2^{n + 1}(n + 1).
+    $$
+    Hence we conclude that $\#(N) = O(N \log N)$.
+\end{frame}
+
+% Image example (place image.png in the same folder)
+% \begin{frame}{Illustration}
+%   \centering
+%   \includegraphics[width=0.6\textwidth]{image.png}
+% \end{frame}
+
+%------------------------------------------------
+\section{Polynomial Multiplication}
+
+\begin{frame}{Polynomial Multiplication}
+    We present one application of fast Fourier transform.
+
+    \vspace{1em}
+
+    \pause
+
+    Given polynomials $F$ and $G$, compute their product $F \cdot G$. Assume the degree of $F$ and $G$ is both $n - 1$, otherwise we can add additional $0$ term to satisfy the condition.
+
+    \vspace{1em}
+
+    \pause
+
+    If we directly compute every term in $F \cdot G$, the time complexity would be $O(n^2)$.
+\end{frame}
+
+\begin{frame}{Process}
+    First let extend $F$ and $G$ to a polynomial of degree of $2n - 2$, since the degree of $F \cdot G$ is $2n - 2$.
+    
+    \pause
+
+    Now let us get the Fourier coefficients of $F$ and $G$ by fast Fourier transform, thus $F(k) = \sum a_n \text{e}^{2 \pi\text{i}nk/N}$ and $G(k) = \sum b_n \text{e}^{2 \pi \text{i}nk/N}$. 
+    Assume the Fourier coefficients of $F \cdot G$ are $\{c_n\}$, then $c_n = a_nb_n$(why?).
+
+    \pause
+
+    Since we know the Fourier coefficients of $F \cdot G$, we surely know $F \cdot G$.
+    
+\end{frame}
+
+\begin{frame}{Time Complexity}
+    The time complexity for getting $\{a_n\}$ and $\{b_n\}$ is $O(n \log n)$ by fast Fourier transform.
+
+    \pause
+
+    It takes $O(n)$ time to compute $\{c_n\}$.
+
+    \pause
+
+    The process to get $F \cdot G$ from $\{c_n\}$ is called the inverse fast Fourier transform. It can be done by modifying the algorithm for getting Fourier coefficient and the time complexity is thus $O(n \log n)$.
+
+    \pause
+
+    The overall time complexity is $O(n \log n)$.
+\end{frame}
+
+%------------------------------------------------
+\section{Conclusion}
+
+% Acknowledgements
+\begin{frame}{Acknowledgements}
+    I am deeply grateful to Frank Cole for his help and guidance, DRP coordinators for organizing this and Elias M. Stein \& Rami Shakarchi for their great textbook.
+
+    \pause
+
+    \vspace{1em}
+
+    Thanks for listening.
+\end{frame}
+
+\end{document}
