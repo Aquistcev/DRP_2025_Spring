@@ -5,6 +5,23 @@
 
 \usepackage{fontspec}        % 文本字体
 \usepackage{unicode-math}    % 数学字体
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{yellow!10},
+}
 
 % Presentation metadata
 \title{Fast Fourier Transform}
@@ -41,7 +58,7 @@
 \end{frame}
 
 \begin{frame}{Root of Unity}
-    A complex number $z$ is an $N$th root of unity of $z^N = 1$. The set of $N$th roots of unity is
+    A complex number $z$ is an $N$th root of unity if $z^N = 1$. The set of $N$th roots of unity is
     $$
     \{1, \text{e}^{2 \pi \text{i}/N}, \text{e}^{2(2 \pi \text{i}/N)}, \cdots, \text{e}^{(n - 1)(2 \pi \text{i}/N)}\}
     $$
@@ -125,7 +142,7 @@
 
     \pause
 
-    Let $\#(M)$ denote the minimum number of operations needed to calculate all the Fourier coefficients. The key is contained in the following recursion step.
+    Let $\#(M)$ denote the minimum number of operations needed to calculate all the Fourier coefficients, then it takes $\#(M)$ operations to find $a_0, \cdots, a_{M - 1}$. The key is contained in the following recursion step.
 \end{frame}
 
 \begin{frame}{A Lemma}
@@ -142,7 +159,7 @@
 \end{frame}
 
 \begin{frame}{A Lemma}
-    We assume that it is possible to calculate the Fourier coefficient of $F_0$ and $F_1$ in no more than $\#(M)$ operations each. If we denote the Fourier coefficients corresponding to 
+    We assume that it is possible to calculate the Fourier coefficient of $f_0$ and $f_1$ in no more than $\#(M)$ operations each. If we denote the Fourier coefficients corresponding to 
     the groups $\mathbb Z(2M)$ and $\mathbb Z(M)$ by $a_{k}^{2M}$ and $a_{k}^M$, then we have
     $$
     \begin{aligned}
@@ -187,17 +204,17 @@
 
     \pause
 
-    Given polynomials $F$ and $G$, compute their product $F \cdot G$. Assume the degree of $F$ and $G$ is both $n - 1$, otherwise we can add additional $0$ term to satisfy the condition.
+    Given polynomials $F$ and $G$, compute their product $F \cdot G$. Assume the degree of $F$ and $G$ are $n$ and $m$.
 
     \vspace{1em}
 
     \pause
 
-    If we directly compute every term in $F \cdot G$, the time complexity would be $O(n^2)$.
+    If we directly compute every term in $F \cdot G$, the time complexity would be $O(nm)$.
 \end{frame}
 
 \begin{frame}{Process}
-    First let extend $F$ and $G$ to a polynomial of degree of $2n - 2$, since the degree of $F \cdot G$ is $2n - 2$.
+    First let us extend $F$ and $G$ to a polynomial of degree of $N$ where $N = 2^k$ and $N \ge n + m - 1$ for convenience.
     
     \pause
 
@@ -211,19 +228,36 @@
 \end{frame}
 
 \begin{frame}{Time Complexity}
-    The time complexity for getting $\{a_n\}$ and $\{b_n\}$ is $O(n \log n)$ by fast Fourier transform.
+    The time complexity for getting $\{a_n\}$ and $\{b_n\}$ is $O(N \log N)$ by fast Fourier transform.
 
     \pause
 
-    It takes $O(n)$ time to compute $\{c_n\}$.
+    It takes $O(N)$ time to compute $\{c_n\}$.
 
     \pause
 
-    The process to get $F \cdot G$ from $\{c_n\}$ is called the inverse fast Fourier transform. It can be done by modifying the algorithm for getting Fourier coefficient and the time complexity is thus $O(n \log n)$.
+    The process to get $F \cdot G$ from $\{c_n\}$ is called the inverse fast Fourier transform. It can be done by modifying the algorithm for getting Fourier coefficient and the time complexity is thus $O(N \log N)$.
 
     \pause
 
-    The overall time complexity is $O(n \log n)$.
+    The overall time complexity is $O(N \log N)$.
+\end{frame}
+
+\begin{frame}[fragile]{Python Code Implementation}
+    \begin{lstlisting}[language=Python]
+import numpy as np
+   
+def poly_mul(a, b):
+    n, m = len(a), len(b)
+    L = 1 << (n + m - 1).bit_length()
+    A = np.fft.fft(a, L)
+    B = np.fft.fft(b, L)
+    C = A * B
+    c = np.fft.ifft(C)
+    c = np.rint(np.real(c)).astype(int)
+    return c[:n+m-1]
+        
+    \end{lstlisting}
 \end{frame}
 
 %------------------------------------------------
